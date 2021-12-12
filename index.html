@@ -29,7 +29,7 @@
         </div>
         <div class="row">
             <div class=" col table-responsive">
-                <table class="table table-bordered table-hover">
+                <table id="table" class="table table-bordered table-hover">
                     <thead>
                       <tr>
                         <th scope="col">#</th>
@@ -45,15 +45,7 @@
                     </thead>
                     <tbody>
                       <tr>
-                        <td scope="row">1</td>
-                        <td>Mark</td>
-                        <td>Otto</td>
-                        <td>@mdo</td>
-                        <td>Mark</td>
-                        <td>Otto</td>
-                        <td>@mdo</td>
-                        <td>@mdo</td>
-                        <td>action</td>
+                        <td style='text-align:center;' colspan='9'>Tidak ada data untuk ditampilkan</td>
                       </tr>
                     </tbody>
                   </table>
@@ -66,7 +58,7 @@
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title" id="exampleModalLabel">Form</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <button type="button" class="close" onclick="resetForm()" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
@@ -111,6 +103,15 @@
                         </div>
                     </div>
                     <div class="form-group row">
+                        <label for="Tanggal Lahir" class="col-sm-4 col-form-label">Tanggal Lahir</label>
+                        <div class="col-sm-8">
+                          <input required type="date" class="form-control" name="TanggalLahir" id="TanggalLahir">
+                          <div class="invalid-feedback">
+                            Tanggal Lahir harus diisi.
+                          </div>
+                        </div>
+                      </div>
+                    <div class="form-group row">
                         <label for="Foto" class="col-sm-4 col-form-label">Foto</label>
                         <div class="col-sm-8">
                             <input required type="file" name="Foto" class="form-control-file" id="Foto" accept="image/png, image/jpeg">
@@ -142,8 +143,8 @@
                 </form>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-              <button type="button" onclick="simpanData()" class="btn btn-primary">Simpan</button>
+              <button type="button" onclick="resetForm()" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+              <button type="button" onclick="simpanData()" class="btn btn-success">Simpan</button>
             </div>
           </div>
         </div>
@@ -159,33 +160,80 @@
     
 
     <script>
-        let Data = []
-
-        let model = {}
+        let data = []
 
         const Validasiform = ()=>{
             let total = 0
             let valid = 0
             let forms = document.getElementsByClassName('needs-validation');
             let validation = Array.prototype.filter.call(forms, function(form) {
-                console.log(form.checkValidity());
                 total +=1
                 if (form.checkValidity() === true) {
                     valid += 1
                 }
                 form.classList.add('was-validated')
             });
-            console.log(total,valid);
             return total===valid
         }
 
         const simpanData = ()=>{
             let isValid = Validasiform()
             if (isValid) {
-                console.log("VALID COY");
+                let model = {}
+                // mapping data to model
+                const fomr = $("form [name]")
+                for (let i = 0; i < fomr.length; i++) {
+                    const element = fomr[i];
+                    model[$(element).attr("name")] = $(element).val()
+                    if ($(element).attr("type") == 'radio') {
+                        model[$(element).attr("name")] = $(`input[name='${$(element).attr("name")}']:checked`).val();
+                    }
+                    if ($(element).attr("type") == 'file'){
+                        if (element.files.length > 0) {
+                            model[$(element).attr("name")] = element.files[0]
+                        }
+                    }
+                }
+                data = [...data,model]
+
+                renderdata()
+                resetForm()
+            }
+        }
+
+        const renderdata = ()=>{
+            let tbody = $("#table tbody")
+            tbody.html("")
+
+            if (data.length > 0) {
+                data.forEach((val,key)=>{
+                    let tr = $("<tr>")
+                    const num = $("<td>").text(key+1)
+                    const Nama = $("<td>").text(val.Nama)
+                    const Alamat = $("<td>").text(val.Alamat)
+                    const JenisKelamin = $("<td>").text(val.JenisKelamin)
+                    const TanggalLahir = $("<td>").text(val.TanggalLahir)
+                    const Foto = $("<td>").append($("<a>").text("Foto").attr('href',URL.createObjectURL(val.Foto)).attr("target","_blank"))
+                    const CV = $("<td>").append($("<a>").text("CV").attr('href',URL.createObjectURL(val.CV)).attr("target","_blank"))
+                    const Sertifikat = $("<td>").append($("<a>").text("Sertifikat").attr('href',URL.createObjectURL(val.Sertifikat)).attr("target","_blank"))
+                    const elm = tr.append(num,Nama,Alamat,JenisKelamin,TanggalLahir,Foto,CV,Sertifikat,`<td><button onclick="removeData(${key})" class='btn btn-danger'>Delete</button></td>`)
+                    tbody.append(elm)
+                })
+            }else{
+                let tr = $("<tr>").append("<td style='text-align:center;' colspan='9'>Tidak ada data untuk ditampilkan</td>")
+                tbody.append(tr)
             }
         }
         
+        const resetForm = ()=>{
+            $('form').removeClass( "was-validated" )
+            $('form').trigger("reset");
+        }
+    
+        const removeData = idx=>{
+            data.splice(idx, 1);
+            renderdata()
+        }
     </script>
 </body>
 </html>
